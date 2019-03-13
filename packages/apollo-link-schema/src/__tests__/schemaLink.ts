@@ -9,6 +9,7 @@ const sampleQuery = gql`
   query SampleQuery {
     sampleQuery {
       id
+      foo: id
     }
   }
 `;
@@ -31,7 +32,15 @@ type Query {
 }
 `;
 
-const schema = makeExecutableSchema({ typeDefs });
+const resolvers = {
+  Query: {
+    sampleQuery() {
+      return { id: '42' };
+    }
+  }
+};
+
+const schema = makeExecutableSchema({ typeDefs, resolvers });
 
 describe('SchemaLink', () => {
   const data = { data: { hello: 'world' } };
@@ -84,6 +93,14 @@ describe('SchemaLink', () => {
       error: error => expect(false),
       complete: () => {
         expect(next).toHaveBeenCalledTimes(1);
+        expect(next).toHaveBeenCalledWith({
+          data: {
+            sampleQuery: {
+              id: '42',
+              foo: '42'
+            }
+          }
+        });
         done();
       },
     });
